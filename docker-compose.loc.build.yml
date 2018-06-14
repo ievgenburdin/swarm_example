@@ -1,0 +1,17 @@
+version: "3.2"
+
+services:
+
+  django:
+    build:
+      context: .
+      dockerfile: ./docker/django/Dockerfile
+    image: swarm-example-django:2
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+      args:
+        - project_env=loc
+    image: swarm-example-nginx:2

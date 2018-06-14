@@ -1,0 +1,47 @@
+version: "3.2"
+
+networks:
+  docker-proxy-overlay:
+    external:
+      name: docker-proxy-overlay
+
+services:
+  django:
+    image: swarm-example-django:2
+    networks:
+      - docker-proxy-overlay
+    command: python manage.py runserver 0.0.0.0:8000 --insecure
+    environment:
+      - VIRTUAL_HOST=django.swarm-example.loc
+      - VIRTUAL_PORT=8000
+    deploy:
+      replicas: 3
+      mode: replicated
+      update_config:
+        monitor: 20s
+        parallelism: 1
+        delay: 20s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  nginx:
+    image: swarm-example-nginx:2
+    environment:
+      - VIRTUAL_HOST=swarm-example.loc
+    networks:
+      - docker-proxy-overlay
+    depends_on:
+      - django
+    deploy:
+      replicas: 2
+      mode: replicated
+      update_config:
+        monitor: 20s
+        parallelism: 1
+        delay: 20s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
